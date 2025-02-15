@@ -1,9 +1,6 @@
 package org.example.calendar_backend.service;
 
-import org.example.calendar_backend.dto.JwtAuthenticationResponse;
-import org.example.calendar_backend.dto.LoginRequestDTO;
-import org.example.calendar_backend.dto.SignUpRequestDTO;
-import org.example.calendar_backend.dto.UserDTO;
+import org.example.calendar_backend.dto.*;
 import org.example.calendar_backend.entity.Friendship;
 import org.example.calendar_backend.entity.FriendshipStatus;
 import org.example.calendar_backend.entity.User;
@@ -165,17 +162,18 @@ public class UserService {
      * 받은 친구 요청 목록 조회 (PENDING 상태의 요청들)
      */
     @Transactional(readOnly = true)
-    public List<UserDTO> getReceivedFriendRequests(String email) {
+    public List<FriendRequestDTO> getReceivedFriendRequests(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다. id: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다. email: " + email));
 
-        // 사용자가 받은 친구 요청 중 PENDING 상태인 요청들을 조회
-        List<Friendship> friendships = friendshipRepository.findByUserAndStatus(user, FriendshipStatus.PENDING);
+        List<Friendship> friendships = friendshipRepository.findByFriendAndStatus(user, FriendshipStatus.PENDING);
+
         return friendships.stream().map(friendship -> {
             User friend = friendship.getUser();
-            return new UserDTO(friend.getId(), friend.getEmail(), friend.getNickname());
+            return new FriendRequestDTO(friendship.getId(), friend.getId(), friend.getEmail(), friend.getNickname());
         }).collect(Collectors.toList());
     }
+
 
     /**
      * 친구 요청 거절
@@ -193,5 +191,24 @@ public class UserService {
         friendship.setStatus(FriendshipStatus.REJECTED);
         friendshipRepository.save(friendship);
     }
-}
 
+    /**
+     * 친구 삭제
+     */
+    @Transactional
+    public void removeFriend(String userEmail, String friendEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다. email: " + userEmail));
+
+        User friend = userRepository.findByEmail(friendEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다. email: " + friendEmail));
+
+        // 양방향 친구 관계를 삭제
+        friendshipRepository.findByUserAndFriend(user, friend)
+                .ifPresent(friendshipRepository::delete);
+
+        friendshipRepository.findByUserAndFriend(friend, user)
+                .ifPresent(friendshipRepository::delete);
+    }
+
+}

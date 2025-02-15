@@ -1,10 +1,7 @@
 package org.example.calendar_backend.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.calendar_backend.dto.JwtAuthenticationResponse;
-import org.example.calendar_backend.dto.LoginRequestDTO;
-import org.example.calendar_backend.dto.SignUpRequestDTO;
-import org.example.calendar_backend.dto.UserDTO;
+import org.example.calendar_backend.dto.*;
 import org.example.calendar_backend.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -83,8 +80,8 @@ public class UserController {
      */
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/friends/requests/received")
-    public ResponseEntity<List<UserDTO>> getReceivedFriendRequests() {
-        List<UserDTO> receivedRequests = userService.getReceivedFriendRequests(getAuthenticatedUserEmail());
+    public ResponseEntity<List<FriendRequestDTO>> getReceivedFriendRequests() {
+        List<FriendRequestDTO> receivedRequests = userService.getReceivedFriendRequests(getAuthenticatedUserEmail());
         return ResponseEntity.ok(receivedRequests);
     }
 
@@ -92,9 +89,19 @@ public class UserController {
      * 친구 요청 거절
      */
     @PreAuthorize("isAuthenticated()")
-    @PostMapping("/friends/request/reject")
+    @PostMapping("/friends/reject")
     public ResponseEntity<Void> rejectFriendRequest(@RequestParam Long friendshipId) {
         userService.rejectFriendRequest(friendshipId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 친구 삭제
+     */
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/friends")
+    public ResponseEntity<Void> removeFriend(@RequestParam String friendEmail) {
+        userService.removeFriend(getAuthenticatedUserEmail(), friendEmail);
         return ResponseEntity.ok().build();
     }
 }

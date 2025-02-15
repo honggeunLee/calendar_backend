@@ -161,5 +161,4 @@ public class ScheduleService {
                         schedule.getDescription(), schedule.getStartTime(), schedule.getEndTime(), schedule.isPublic()))
                 .collect(Collectors.toList());
     }
-
 }

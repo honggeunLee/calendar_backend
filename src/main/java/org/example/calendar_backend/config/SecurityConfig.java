@@ -5,6 +5,7 @@ import org.example.calendar_backend.security.JwtAuthenticationFilter;
 import org.example.calendar_backend.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,8 +29,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
     @Bean
@@ -40,18 +41,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // CSRF 비활성화 (JWT 사용 시 필요)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용 X
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Preflight OPTIONS 요청 모두 허용
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
-                                "/swagger-ui/**", "/v3/api-docs/**", // Swagger UI 허용
-                                "/api/users/signup", "/api/users/login" // 회원가입 및 로그인 허용
+                                "/swagger-ui/**", "/v3/api-docs/**",
+                                "/api/users/signup", "/api/users/login"
                         ).permitAll()
-                        .anyRequest().authenticated() // 나머지 API는 인증 필요
+                        .anyRequest().authenticated()
                 );
 
-        // JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter 전에 등록
-        http.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService), UsernamePasswordAuthenticationFilter.class);
+        // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 이전에 추가
+        http.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService),
+                UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

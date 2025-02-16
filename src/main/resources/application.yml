@@ -2,9 +2,9 @@ spring:
   application:
     name: calendar_backend
   datasource:
-    url: jdbc:mysql://localhost:3306/calendar_db?useSSL=false&serverTimezone=UTC
-    username: root
-    password: lee991012
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 5

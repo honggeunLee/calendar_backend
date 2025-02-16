@@ -12,28 +12,39 @@ Calendar API는 사용자가 일정을 생성하고 관리하며, 친구와 공�
 - MySQL Database
 - Gradle 7+
 
-### 2.2 데이터베이스 설정
+### 2.2 데이터베이스 설정 및 프로젝트 빌드/실행
 
-1. MySQL에 데이터베이스 생성:
+1. 프로젝트 클론:
+   ```sh
+   git clone https://github.com/honggeunLee/calendar_backend
+   ```
+2. MySQL에 데이터베이스 생성:
    ```sql
    CREATE DATABASE calendar_db;
    ```
-2. `application.yml` 설정 (아래와 같이 환경변수로 설정 되어있기 때문에 환경변수 설정을 해주어야 합니다.):
+3. 기존 데이터 복원 (`calendar_db_backup.sql` 파일 사용, 프로젝트 루트경로에 존재합니다.):
+   ```sh
+   mysql -u root -p calendar_db < calendar_db_backup.sql
+   ```
+4. `application.yml` 설정 (아래와 같이 환경변수로 설정 되어있기 때문에 환경변수 설정을 해주어야 합니다.):
    ```yml
    datasource:
        url: ${DB_URL}
        username: ${DB_USERNAME}
        password: ${DB_PASSWORD}
    ```
+   아래의 코드로 설정하거나 application.yml 파일에서 datasource에 직접 수정
    ```sh
    # PowerShell
    $env:DB_URL="jdbc:mysql://localhost:3306/calendar_db?useSSL=false&serverTimezone=UTC"
    $env:DB_USERNAME="your_db_username"
    $env:DB_PASSWORD="your_db_password"
+   
    # CMD (명령 프롬프트)
    set DB_URL "jdbc:mysql://localhost:3306/calendar_db?useSSL=false&serverTimezone=UTC"
    set DB_USERNAME "your_db_username"
    set DB_PASSWORD "your_db_password"
+   
    # macOS / Linux (Bash / Zsh)
    export DB_URL="jdbc:mysql://localhost:3306/calendar_db?useSSL=false&serverTimezone=UTC"
    export DB_USERNAME="your_db_username"
@@ -41,19 +52,13 @@ Calendar API는 사용자가 일정을 생성하고 관리하며, 친구와 공�
    
    ######### your_db_username, your_db_password는 실제 mysql 계정을 사용해야합니다. ###########
    ```
-3. 기존 데이터 복원 (`calendar_db_backup.sql` 파일 사용):
+4. 빌드 및 실행 (DB 환경변수 관련 에러 발생시 환경변수 설정 혹은 application.yml 파일의 datasource 수정 필수)
    ```sh
-   mysql -u root -p calendar_db < calendar_db_backup.sql
+   cd [프로젝트 경로] # 실제 경로
+   ./gradlew build
+   ./gradlew bootRun
    ```
 
-### 2.3 빌드 및 실행 (DB 환경변수 관련 에러 발생시 환경변수 설정 확인 필수)
-
-```sh
-git clone https://github.com/honggeunLee/calendar_backend
-cd [프로젝트 경로] # 실제 경로
-./gradlew build
-./gradlew bootRun
-```
 
 ## 3. 주력 라이브러리 및 사용 이유
 
